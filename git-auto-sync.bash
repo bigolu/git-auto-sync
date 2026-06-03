@@ -6,8 +6,8 @@ set -o pipefail
 shopt -s nullglob
 shopt -s inherit_errexit
 
-if [[ ${AUTO_SYNC_DEBUG:-} == 'true' ]]; then
-	echo "AUTO_SYNC_HOOK_NAME: ${AUTO_SYNC_HOOK_NAME:?}"
+if [[ ${GIT_AUTO_SYNC_DEBUG:-} == 'true' ]]; then
+	echo "GIT_AUTO_SYNC_HOOK_NAME: ${GIT_AUTO_SYNC_HOOK_NAME:?}"
 	set -o xtrace
 fi
 
@@ -20,12 +20,12 @@ function main {
 	# We'll consider the repository synced with any commit made locally.
 	if
 		{
-			[[ $AUTO_SYNC_HOOK_NAME == 'post-commit' ]] &&
+			[[ $GIT_AUTO_SYNC_HOOK_NAME == 'post-commit' ]] &&
 				# post-commit hooks triggered during a pull/rebase shouldn't count
 				[[ ! $last_reflog_entry =~ $pull_rebase_regex ]]
 		} ||
 			{
-				[[ $AUTO_SYNC_HOOK_NAME == 'post-rewrite' ]] &&
+				[[ $GIT_AUTO_SYNC_HOOK_NAME == 'post-rewrite' ]] &&
 					[[ $1 == 'amend' ]]
 			}
 	then
@@ -35,7 +35,7 @@ function main {
 
 	should_sync="$(should_sync "$@")"
 
-	if [[ ${AUTO_SYNC_CHECK_ONLY:-} == 'true' ]]; then
+	if [[ ${GIT_AUTO_SYNC_CHECK_ONLY:-} == 'true' ]]; then
 		if [[ $should_sync == 'true' ]]; then
 			exit 0
 		else
@@ -59,7 +59,7 @@ function main {
 			fi
 		done
 
-		AUTO_SYNC_LAST_COMMIT="$last_commit" "${sync_command[@]}"
+		GIT_AUTO_SYNC_LAST_COMMIT="$last_commit" "${sync_command[@]}"
 	fi
 }
 
@@ -74,7 +74,7 @@ function track_last_synced_commit {
 function get_last_commit_path {
 	local git_directory
 	git_directory="$(git rev-parse --absolute-git-dir)"
-	echo "$git_directory/info/auto-sync-last-commit"
+	echo "$git_directory/git-auto-sync-last-commit"
 }
 
 function get_last_commit {
@@ -97,7 +97,7 @@ function should_sync {
 		should_sync='false'
 	fi
 
-	case "${AUTO_SYNC_HOOK_NAME:?}" in
+	case "${GIT_AUTO_SYNC_HOOK_NAME:?}" in
 		'post-commit')
 			should_sync='false'
 			;;
@@ -123,7 +123,7 @@ function should_sync {
 			fi
 			;;
 		*)
-			echo "auto-sync: Error, invalid AUTO_SYNC_HOOK_NAME: $AUTO_SYNC_HOOK_NAME" >&2
+			echo "git-auto-sync: Error, invalid GIT_AUTO_SYNC_HOOK_NAME: $GIT_AUTO_SYNC_HOOK_NAME" >&2
 			exit 1
 			;;
 	esac

@@ -50,10 +50,10 @@ and make it executable by running `chmod +x <path_to_script>`.
 `git-auto-sync` should be called from the git hooks `post-rewrite`, `post-merge`, `post-checkout`, and `post-commit`. The call has the form:
 
 ```bash
-env AUTO_SYNC_HOOK_NAME=<hook_name> git-auto-sync <git_hook_args>... -- <sync_command>...
+env GIT_AUTO_SYNC_HOOK_NAME=<hook_name> git-auto-sync <git_hook_args>... -- <sync_command>...
 ```
 
-- The environment variable `AUTO_SYNC_HOOK_NAME` should be set to the name of the git hook being executed (`<hook_name>`).
+- The environment variable `GIT_AUTO_SYNC_HOOK_NAME` should be set to the name of the git hook being executed (`<hook_name>`).
 
 - `git_hook_args` are the arguments that were passed to the git hook.
   
@@ -67,27 +67,27 @@ Here's an example of setting up the git hooks using the hook manager [lefthook][
 post-rewrite:
   jobs:
     - name: sync
-      run: AUTO_SYNC_HOOK_NAME='post-rewrite' git-auto-sync {0} -- lefthook run sync
+      run: GIT_AUTO_SYNC_HOOK_NAME='post-rewrite' git-auto-sync {0} -- lefthook run sync
 
 post-merge:
   jobs:
     - name: sync
-      run: AUTO_SYNC_HOOK_NAME='post-merge' git-auto-sync {0} -- lefthook run sync
+      run: GIT_AUTO_SYNC_HOOK_NAME='post-merge' git-auto-sync {0} -- lefthook run sync
 
 post-checkout:
   jobs:
     - name: sync
-      run: AUTO_SYNC_HOOK_NAME='post-checkout' git-auto-sync {0} -- lefthook run sync
+      run: GIT_AUTO_SYNC_HOOK_NAME='post-checkout' git-auto-sync {0} -- lefthook run sync
 
 post-commit:
   jobs:
     - name: sync
-      run: AUTO_SYNC_HOOK_NAME='post-commit' git-auto-sync {0}
+      run: GIT_AUTO_SYNC_HOOK_NAME='post-commit' git-auto-sync {0}
 ```
 
 ### Running the sync command
 
-The environment variable `AUTO_SYNC_LAST_COMMIT` will be set to the hash of last synced commit or an empty string
+The environment variable `GIT_AUTO_SYNC_LAST_COMMIT` will be set to the hash of last synced commit or an empty string
 if no commit has been synced. This can be used by the sync command to calculate
 the files that differ between a new commit that's being synced with and the
 last one. Then it can use this file list to more granularly determine what
