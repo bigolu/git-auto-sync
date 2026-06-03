@@ -1,0 +1,28 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/mattn/efm-langserver/master/schema.json
+
+version: 2
+
+lint-debounce: 200ms
+
+tools:
+  markdownlint-cli2: &markdownlint-cli2
+    lint-source: markdownlint-cli2
+    lint-after-open: true
+    lint-stdin: true
+    lint-command: markdownlint-cli2 -
+    lint-formats:
+      - "%f:%l:%c %m"
+      - "%f:%l %m"
+  statix: &statix
+    lint-source: statix
+    lint-after-open: true
+    lint-stdin: true
+    lint-command: statix check --stdin --format errfmt
+    lint-formats:
+      - "%f>%l:%c:%t:%n:%m"
+
+languages:
+  markdown:
+    - <<: *markdownlint-cli2
+  nix:
+    - <<: *statix

@@ -1,0 +1,7 @@
+# Setting a root lets EditorConfig know that this is the top-most config
+# file. Otherwise, it would continue to search more parent directories.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf

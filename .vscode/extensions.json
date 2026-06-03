@@ -1,0 +1,10 @@
+{
+  "recommendations": [
+    "jnoortheen.nix-ide",
+    "ltex-plus.vscode-ltex-plus",
+    "mads-hartmann.bash-ide-vscode",
+    "mkhl.direnv",
+    "redhat.vscode-yaml",
+    "maximsmol.vscode-lsp-generic"
+  ]
+}

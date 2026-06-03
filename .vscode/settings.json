@@ -1,0 +1,44 @@
+{
+  // Automatically restart all the other extensions after loading the direnv
+  // environment. This way the other extensions will have the environment as well.
+  "direnv.restart.automatic": true,
+  "editor.formatOnSave": false,
+  "files.associations": {
+    ".envrc": "shellscript",
+    "renovate.json": "jsonc"
+  },
+  "lsp_generic_client.servers": {
+    "efm-langserver": {
+      "name": "efm-langserver",
+      "path": "efm-langserver",
+      "args": [
+        "-c",
+        "efm-langserver.yaml"
+      ],
+      "documentSelector": [
+        {
+          "pattern": "**",
+          "scheme": "file"
+        }
+      ]
+    }
+  },
+  "ltex.completionEnabled": true,
+  "ltex.enabled": [
+    "git-commit",
+    "markdown"
+  ],
+  "nix.enableLanguageServer": true,
+  "nix.serverPath": "nixd",
+  "nix.serverSettings": {
+    "nixd": {
+      "nixpkgs": {
+        // We provide values for `config` and `overlays` to avoid using their non-deterministic defaults.
+        "expr": "import (import ./flake-compat.nix).inputs.nixpkgs { config = {}; overlays = []; }"
+      }
+    }
+  },
+  "json.schemaDownload.trustedDomains": {
+    "*": true
+  }
+}
