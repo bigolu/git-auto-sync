@@ -14,33 +14,33 @@ and make it executable by running `chmod +x <path_to_script>`.
 ### Nix (flake)
 
 ```nix
-  {
-    inputs = {
-      nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-      git-auto-sync = {
-        url = "github:bigolu/git-auto-sync";
-        inputs = {
-          nixpkgs.follows = "nixpkgs";
+{
+  inputs = {
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    git-auto-sync = {
+      url = "github:bigolu/git-auto-sync";
+      inputs = {
+        nixpkgs.follows = "nixpkgs";
 
-          # Remove development dependencies
-          devshell.follows = "";
-          flake-compat.follows = "";
-          devshell-modules.follows = "";
-        };
+        # Remove development dependencies
+        devshell.follows = "";
+        flake-compat.follows = "";
+        devshell-modules.follows = "";
       };
     };
+  };
 
-    outputs = inputs:
-      let
-        # You can use the package
-        package = inputs.git-auto-sync.packages.${system}.default;
-        # Or the overlay
-        packageFromOverlay = (import inputs.nixpkgs { overlays = [inputs.git-auto-sync.overlays.default]; }).git-auto-sync;
-      in
-      {
-        # ...
-      }
-  }
+  outputs = inputs:
+    let
+      # You can use the package
+      package = inputs.git-auto-sync.packages.${system}.default;
+      # Or the overlay
+      packageFromOverlay = (import inputs.nixpkgs { overlays = [inputs.git-auto-sync.overlays.default]; }).git-auto-sync;
+    in
+    {
+      # ...
+    }
+}
 ```
 
 ## Usage
