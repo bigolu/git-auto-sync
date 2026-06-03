@@ -93,19 +93,4 @@ the files that differ between a new commit that's being synced with and the
 last one. Then it can use this file list to more granularly determine what
 needs to be synced.
 
-### When syncing happens
-
-By default, auto-syncing is only enabled for the default branch since other
-branches may be a security concern. For example, if you're working on an open
-source project and your synchronization code can execute arbitrary code, then
-checking out a pull request that contains malicious synchronization code could
-compromise your system.
-
-The exception to this is a non-pull merge/rebase. I assume that those are ok
-since I only expect people to do a merge/rebase on a branch they trust, unless
-it's part of a pull. For example, rebasing a feature branch on master.
-
-You can set the git config option `auto-sync.allow.all` to true to allow syncing on all branches.
-You can do so by running the command `git config auto-sync.allow.all true`.
-
 [lefthook]: https://github.com/evilmartians/lefthook

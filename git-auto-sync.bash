@@ -97,21 +97,6 @@ function should_sync {
 		should_sync='false'
 	fi
 
-	local should_allow_all_branches
-	should_allow_all_branches="$(safe_git_config_get 'auto-sync.allow.all')"
-	local is_head_in_default_branch
-	is_head_in_default_branch="$(is_head_in_default_branch)"
-	local -r pull_regex='^.*: pull( .*)?: .+'
-	if
-		[[ $should_allow_all_branches != 'true' && $is_head_in_default_branch != 'true' ]] &&
-			! {
-				[[ $AUTO_SYNC_HOOK_NAME == 'post-merge' || $AUTO_SYNC_HOOK_NAME == 'post-rewrite' ]] &&
-					[[ ! $last_reflog_entry =~ $pull_regex ]]
-			}
-	then
-		should_sync='false'
-	fi
-
 	case "${AUTO_SYNC_HOOK_NAME:?}" in
 		'post-commit')
 			should_sync='false'
@@ -144,39 +129,6 @@ function should_sync {
 	esac
 
 	echo "$should_sync"
-}
-
-function is_head_in_default_branch {
-	local default_branch
-	default_branch="$(get_default_branch)"
-
-	if git merge-base --is-ancestor HEAD "$default_branch"; then
-		echo 'true'
-	else
-		echo 'false'
-	fi
-}
-
-function get_default_branch {
-	local default_branch_path
-	default_branch_path="$(git symbolic-ref refs/remotes/origin/HEAD)"
-	# This gets the characters after the last '/'. `default_branch_path` will resemble
-	# 'refs/remotes/origin/master' so this would return 'master'.
-	echo "${default_branch_path##*/}"
-}
-
-function safe_git_config_get {
-	# git exits with 1 if you try to get the value of a setting that isn't set, but we
-	# don't want the script to exit if that happens.
-	set +o errexit
-	git config get "$@"
-	local exit_code=$?
-	set -o errexit
-	if ((exit_code == 1)); then
-		return 0
-	else
-		return "$exit_code"
-	fi
 }
 
 main "$@"
