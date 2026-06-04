@@ -44,11 +44,6 @@ function main {
 	fi
 
 	if [[ $should_sync == 'true' ]]; then
-		# Even if the sync doesn't succeed, we still want to consider the repository
-		# synced against the current commit since the user will probably fix whatever
-		# wasn't working and rerun the sync.
-		trap track_last_synced_commit EXIT
-
 		local -a sync_command
 		local seen_delimiter='false'
 		for arg in "$@"; do
@@ -59,6 +54,10 @@ function main {
 			fi
 		done
 
+		# Even if the sync doesn't succeed, we still want to consider the repository
+		# synced against the current commit since the user will probably fix whatever
+		# wasn't working and rerun the sync.
+		trap track_last_synced_commit EXIT
 		GIT_AUTO_SYNC_LAST_COMMIT="$last_commit" "${sync_command[@]}"
 	fi
 }
