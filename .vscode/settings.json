@@ -34,7 +34,7 @@
     "nixd": {
       "nixpkgs": {
         // We provide values for `config` and `overlays` to avoid using their non-deterministic defaults.
-        "expr": "import (import ./flake-compat.nix).inputs.nixpkgs { config = {}; overlays = []; }"
+        "expr": "import (import ./nix/flake-compat.nix).inputs.nixpkgs { config = {}; overlays = []; }"
       }
     }
   },
