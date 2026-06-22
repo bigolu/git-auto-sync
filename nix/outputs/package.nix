@@ -5,7 +5,7 @@ let
 
   pname = "git-auto-sync";
   dependencies = with pkgs; [
-    gitMinimal
+    git
   ];
 in
 resholve.mkDerivation {
@@ -23,7 +23,7 @@ resholve.mkDerivation {
     interpreter = "${bash}/bin/bash";
     inputs = dependencies;
     execer = [
-      "cannot:${getExe pkgs.gitMinimal}"
+      "cannot:${getExe pkgs.git}"
     ];
     keep = {
       "$sync_command" = true;
