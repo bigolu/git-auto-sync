@@ -48,15 +48,6 @@ function main {
 	fi
 
 	should_sync="$(should_sync "${hook_args[@]}")"
-
-	if [[ ${GIT_AUTO_SYNC_CHECK_ONLY:-} == 'true' ]]; then
-		if [[ $should_sync == 'true' ]]; then
-			exit 0
-		else
-			exit 1
-		fi
-	fi
-
 	if [[ $should_sync == 'true' ]]; then
 		local -a sync_command
 		local seen_delimiter='false'
