@@ -6,26 +6,40 @@ set -o pipefail
 shopt -s nullglob
 shopt -s inherit_errexit
 
-if [[ ${GIT_AUTO_SYNC_DEBUG:-} == 'true' ]]; then
-	echo "GIT_AUTO_SYNC_HOOK_NAME: ${GIT_AUTO_SYNC_HOOK_NAME:?}"
-	set -o xtrace
-fi
-
 function main {
+	if [[ ${GIT_AUTO_SYNC_DEBUG:-} == 'true' ]]; then
+		set -o xtrace
+	fi
+
+	if [[ $1 == 'install' ]]; then
+		install "${@:2}"
+		exit
+	fi
+
 	# Intentionally global
 	last_reflog_entry="$(git reflog show --max-count 1)"
 	pull_rebase_regex='^.*: (pull|rebase)( .*)?: .+'
 	last_commit="$(get_last_commit)"
+	hook_name="$1"
+
+	local -a hook_args=()
+	for arg in "${@:2}"; do
+		if [[ $arg == '--' ]]; then
+			break
+		else
+			hook_args+=("$arg")
+		fi
+	done
 
 	# We'll consider the repository synced with any commit made locally.
 	if
 		{
-			[[ $GIT_AUTO_SYNC_HOOK_NAME == 'post-commit' ]] &&
+			[[ $hook_name == 'post-commit' ]] &&
 				# post-commit hooks triggered during a pull/rebase shouldn't count
 				[[ ! $last_reflog_entry =~ $pull_rebase_regex ]]
 		} ||
 			{
-				[[ $GIT_AUTO_SYNC_HOOK_NAME == 'post-rewrite' ]] &&
+				[[ $hook_name == 'post-rewrite' ]] &&
 					[[ $1 == 'amend' ]]
 			}
 	then
@@ -33,7 +47,7 @@ function main {
 		exit
 	fi
 
-	should_sync="$(should_sync "$@")"
+	should_sync="$(should_sync "${hook_args[@]}")"
 
 	if [[ ${GIT_AUTO_SYNC_CHECK_ONLY:-} == 'true' ]]; then
 		if [[ $should_sync == 'true' ]]; then
@@ -54,12 +68,21 @@ function main {
 			fi
 		done
 
+		echo '[git-auto-sync] Syncing...'
+
 		# Even if the sync doesn't succeed, we still want to consider the repository
 		# synced against the current commit since the user will probably fix whatever
 		# wasn't working and rerun the sync.
 		trap track_last_synced_commit EXIT
 		GIT_AUTO_SYNC_LAST_COMMIT="$last_commit" "${sync_command[@]}"
 	fi
+}
+
+function install {
+	for hook in post-checkout post-merge post-rewrite post-commit; do
+		git config "hook.auto-sync-$hook.event" "$hook"
+		git config "hook.auto-sync-$hook.command" "git-auto-sync $hook \"\$@\" -- ${*@Q}"
+	done
 }
 
 function track_last_synced_commit {
@@ -87,6 +110,10 @@ function get_last_commit {
 function should_sync {
 	local should_sync='true'
 
+	if [[ ${GIT_AUTO_SYNC_SKIP:-} == 'true' ]]; then
+		should_sync='false'
+	fi
+
 	# If there are no differences between the last commit we synced with and the
 	# current one, then we shouldn't sync.
 	if
@@ -96,7 +123,7 @@ function should_sync {
 		should_sync='false'
 	fi
 
-	case "${GIT_AUTO_SYNC_HOOK_NAME:?}" in
+	case "${hook_name:?}" in
 		'post-commit')
 			should_sync='false'
 			;;
@@ -122,7 +149,7 @@ function should_sync {
 			fi
 			;;
 		*)
-			echo "git-auto-sync: Error, invalid GIT_AUTO_SYNC_HOOK_NAME: $GIT_AUTO_SYNC_HOOK_NAME" >&2
+			echo "git-auto-sync: Error, invalid hook name: $hook_name" >&2
 			exit 1
 			;;
 	esac
