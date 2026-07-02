@@ -6,6 +6,8 @@ set -o pipefail
 shopt -s nullglob
 shopt -s inherit_errexit
 
+command_delimiter='--git-auto-sync-end-of-sync-command--'
+
 function main {
 	if [[ ${GIT_AUTO_SYNC_DEBUG:-} == 'true' ]]; then
 		set -o xtrace
@@ -22,12 +24,17 @@ function main {
 	last_commit="$(get_last_commit)"
 	hook_name="$1"
 
+	local -a sync_command=()
 	local -a hook_args=()
+	local seen_delimiter='false'
+	local arg
 	for arg in "${@:2}"; do
-		if [[ $arg == '--' ]]; then
-			break
-		else
+		if [[ $arg == "$command_delimiter" ]]; then
+			seen_delimiter='true'
+		elif [[ $seen_delimiter == 'true' ]]; then
 			hook_args+=("$arg")
+		else
+			sync_command+=("$arg")
 		fi
 	done
 
@@ -49,18 +56,7 @@ function main {
 
 	should_sync="$(should_sync "${hook_args[@]}")"
 	if [[ $should_sync == 'true' ]]; then
-		local -a sync_command
-		local seen_delimiter='false'
-		for arg in "$@"; do
-			if [[ $seen_delimiter == 'true' ]]; then
-				sync_command+=("$arg")
-			elif [[ $arg == '--' ]]; then
-				seen_delimiter='true'
-			fi
-		done
-
 		echo '[git-auto-sync] Syncing...'
-
 		# Even if the sync doesn't succeed, we still want to consider the repository
 		# synced against the current commit since the user will probably fix whatever
 		# wasn't working and rerun the sync.
@@ -72,7 +68,7 @@ function main {
 function install {
 	for hook in post-checkout post-merge post-rewrite post-commit; do
 		git config "hook.auto-sync-$hook.event" "$hook"
-		git config "hook.auto-sync-$hook.command" "git-auto-sync $hook \"\$@\" -- ${*@Q}"
+		git config "hook.auto-sync-$hook.command" "git-auto-sync $hook ${*@Q} $command_delimiter"
 	done
 }
 
