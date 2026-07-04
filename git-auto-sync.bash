@@ -23,20 +23,15 @@ function main {
 	hook_name="$1"
 
 	local -a sync_command=("${@:3:$2}")
-	hook_args_start=$(( $2 + 3 ))
-	local -a hook_args=("${@:$hook_args_start}")
+	local -a hook_args=("${@:$(($2 + 3))}")
 
 	# We'll consider the repository synced with any commit made locally.
 	if
-		{
-			[[ $hook_name == 'post-commit' ]] &&
-				# post-commit hooks triggered during a pull/rebase shouldn't count
-				[[ ! $last_reflog_entry =~ $pull_rebase_regex ]]
-		} ||
-			{
-				[[ $hook_name == 'post-rewrite' ]] &&
-					[[ $1 == 'amend' ]]
-			}
+		[[
+			# post-commit hooks triggered during a pull/rebase shouldn't count
+			($hook_name == 'post-commit' && ! $last_reflog_entry =~ $pull_rebase_regex)
+				|| ($hook_name == 'post-rewrite' && $1 == 'amend')
+		]]
 	then
 		track_last_synced_commit
 		exit
@@ -85,37 +80,29 @@ function get_last_commit {
 function should_sync {
 	local should_sync='true'
 
-	if [[ ${GIT_AUTO_SYNC_SKIP:-} == 'true' ]]; then
-		should_sync='false'
-	fi
-
-	# If there are no differences between the last commit we synced with and the
-	# current one, then we shouldn't sync.
 	if
-		[[ -n $last_commit ]] &&
-			git diff --exit-code --quiet "$last_commit" HEAD
+		[[ ${GIT_AUTO_SYNC_SKIP:-} == 'true' ]] ||
+			# There are no differences between the last commit we synced with and the
+			# current one.
+			{ [[ -n $last_commit ]] && git diff --exit-code --quiet "$last_commit" HEAD; }
 	then
 		should_sync='false'
 	fi
 
 	case "${hook_name:?}" in
+		'post-merge' | 'post-rewrite')
+			;;
 		'post-commit')
 			should_sync='false'
 			;;
-		'post-merge' | 'post-rewrite')
-			# There's nothing to do in this case
-			;;
 		'post-checkout')
 			if
-				# We should only sync if this is a branch/commit checkout and not a file
-				# checkout. The documentation says the third argument to the hook is '1'
-				# if it's a branch checkout, but this seems to include checkouts to
-				# arbitrary commits as well.
-				(($3 != 1)) ||
-					# Don't run when we're in the middle of a pull/rebase,
+				# This is a file checkout.
+				(($3 == 0)) ||
+					# We're in the middle of a pull/rebase. We shouldn't sync here since
 					# post-merge/post-rewrite will run when the pull/rebase is finished.
 					[[ $last_reflog_entry =~ $pull_rebase_regex ]] ||
-					# If the destination commit has been pushed to the default branch, I
+					# The destination commit has been pushed to the default branch. Here, I
 					# assume the user is going through the history to debug. As such, we
 					# shouldn't sync.
 					git merge-base --is-ancestor "$2" origin
