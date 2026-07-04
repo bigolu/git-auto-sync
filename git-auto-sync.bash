@@ -44,11 +44,11 @@ function main {
 
 	should_sync="$(should_sync "${hook_args[@]}")"
 	if [[ $should_sync == 'true' ]]; then
-		echo '[git-auto-sync] Syncing...'
 		# Even if the sync doesn't succeed, we still want to consider the repository
 		# synced against the current commit since the user will probably fix whatever
 		# wasn't working and rerun the sync.
 		trap track_last_synced_commit EXIT
+		echo '[git-auto-sync] Syncing...'
 		GIT_AUTO_SYNC_LAST_COMMIT="$last_commit" "${sync_command[@]}"
 	fi
 }
