@@ -27,11 +27,9 @@ function main {
 
 	# We'll consider the repository synced with any commit made locally.
 	if
-		[[
-			# post-commit hooks triggered during a pull/rebase shouldn't count
-			($hook_name == 'post-commit' && ! $last_reflog_entry =~ $pull_rebase_regex)
-				|| ($hook_name == 'post-rewrite' && $1 == 'amend')
-		]]
+		# post-commit hooks triggered during a pull/rebase shouldn't count
+		[[ $hook_name == 'post-commit' && ! $last_reflog_entry =~ $pull_rebase_regex ]] ||
+				[[ $hook_name == 'post-rewrite' && $1 == 'amend' ]]
 	then
 		track_last_synced_commit
 		exit
