@@ -29,7 +29,7 @@ function main {
 	if
 		# post-commit hooks triggered during a pull/rebase shouldn't count
 		[[ $hook_name == 'post-commit' && ! $last_reflog_entry =~ $pull_rebase_regex ]] ||
-				[[ $hook_name == 'post-rewrite' && $1 == 'amend' ]]
+				[[ $hook_name == 'post-rewrite' && ${hook_args[0]} == 'amend' ]]
 	then
 		track_last_synced_commit
 		exit
@@ -41,7 +41,7 @@ function main {
 		# synced against the current commit since the user will probably fix whatever
 		# wasn't working and rerun the sync.
 		trap track_last_synced_commit EXIT
-		echo '[git-auto-sync] Syncing...'
+		echo '[git-auto-sync] Syncing...' >&2
 		GIT_AUTO_SYNC_LAST_COMMIT="$last_commit" "${sync_command[@]}"
 	fi
 }
