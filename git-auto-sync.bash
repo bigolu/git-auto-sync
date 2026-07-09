@@ -56,9 +56,7 @@ function install {
 function track_last_synced_commit {
 	local last_commit_path
 	last_commit_path="$(get_last_commit_path)"
-	# By only tracking the file tree for a commit, our cache won't get invalidated by
-	# changes to metadata like the commit message.
-	git rev-parse 'HEAD^{tree}' >"$last_commit_path"
+	git rev-parse 'HEAD' >"$last_commit_path"
 }
 
 function get_last_commit_path {
@@ -80,9 +78,8 @@ function should_sync {
 
 	if
 		[[ ${GIT_AUTO_SYNC_SKIP:-} == 'true' ]] ||
-			# There are no differences between the last commit we synced with and the
-			# current one.
-			{ [[ -n $last_commit ]] && git diff --exit-code --quiet "$last_commit" HEAD; }
+			# There are no differences between the last synced commit and the current one.
+			{ [[ -n $last_commit ]] && git diff-tree --exit-code --quiet "$last_commit" 'HEAD'; }
 	then
 		should_sync='false'
 	fi
