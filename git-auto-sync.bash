@@ -42,7 +42,7 @@ function main {
 		# wasn't working and rerun the sync.
 		trap track_last_synced_commit EXIT
 		echo '[git-auto-sync] Syncing...' >&2
-		GIT_AUTO_SYNC_LAST_COMMIT="$last_commit" "${sync_command[@]}"
+		IN_GIT_AUTO_SYNC=true GIT_AUTO_SYNC_LAST_COMMIT="$last_commit" "${sync_command[@]}"
 	fi
 }
 

@@ -59,6 +59,8 @@ Example: `git-auto-sync install uv sync`
 
 ### Running the sync command
 
+The environment variable `IN_GIT_AUTO_SYNC` will be set to `true`.
+
 The environment variable `GIT_AUTO_SYNC_LAST_COMMIT` will be set to the hash of last synced commit or an empty string
 if no commit has been synced. This can be used by the sync command to calculate
 the files that differ between a new commit that's being synced with and the
